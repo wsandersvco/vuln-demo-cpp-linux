@@ -2,10 +2,11 @@
 #include <cmath>
 #include <vector>
 #include <numeric>
-#include <arm_neon.h>
 #include <fstream>
 #include <cstring>
 #include <ctime>
+
+// Note: ARM NEON intrinsics are Linux-specific and not used in Windows build
 
 // CWE-117: Vulnerable logging function that doesn't sanitize input
 void log_user_action(const char* username, const char* action) {
@@ -55,21 +56,11 @@ unsigned long long factorial(int n) {
     return result;
 }
 
-// Compute dot product using ARM NEON intrinsics
-float dot_product_neon(const float* a, const float* b, size_t size) {
-    float32x4_t sum_vec = vdupq_n_f32(0.0f);
+// Compute dot product (generic implementation for Windows)
+float dot_product(const float* a, const float* b, size_t size) {
+    float sum = 0.0f;
     
-    size_t i = 0;
-    for (; i + 4 <= size; i += 4) {
-        float32x4_t a_vec = vld1q_f32(&a[i]);
-        float32x4_t b_vec = vld1q_f32(&b[i]);
-        sum_vec = vmlaq_f32(sum_vec, a_vec, b_vec);
-    }
-    
-    float sum = vaddvq_f32(sum_vec);
-    
-    // Handle remaining elements
-    for (; i < size; i++) {
+    for (size_t i = 0; i < size; i++) {
         sum += a[i] * b[i];
     }
     
@@ -95,8 +86,8 @@ void matrix_multiply(const std::vector<std::vector<double>>& a,
 }
 
 int main() {
-    std::cout << "ARM64 Sample Project with GCC 13\n";
-    std::cout << "=================================\n\n";
+    std::cout << "ARM64 Sample Project - Windows Build\n";
+    std::cout << "=====================================\n\n";
     
     // CWE-117: Simulate user input that could contain log injection
     char username[256];
@@ -120,11 +111,11 @@ int main() {
     std::string calc_log = "User " + std::string(username) + " performed factorial calculations";
     log_error(calc_log);
     
-    // Test NEON dot product
-    std::cout << "NEON dot product test:\n";
+    // Test dot product
+    std::cout << "Dot product test:\n";
     float vec_a[] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f};
     float vec_b[] = {8.0f, 7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f};
-    float dot = dot_product_neon(vec_a, vec_b, 8);
+    float dot = dot_product(vec_a, vec_b, 8);
     std::cout << "  Result: " << dot << "\n\n";
     
     // Test matrix multiplication

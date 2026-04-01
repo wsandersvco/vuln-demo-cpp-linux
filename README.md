@@ -1,20 +1,16 @@
 # ARM64 C++ Sample Project
 
-A simple Linux ARM64 sample project demonstrating various computations and ARM NEON intrinsics, built with GCC 13.
-
-## Features
-
-- Factorial computation
-- ARM NEON SIMD dot product operations
-- Matrix multiplication
-- Mathematical functions (sin, cos, sqrt, log)
-- Utility functions (distance, average, Fibonacci, prime checking)
-
 ## Requirements
 
+### Linux/macOS Build
 - GCC 13 (gcc-13)
 - Linux ARM64 target architecture
 - Make build system
+
+### Windows Build
+- Visual Studio 2022 (or later) with C++ ARM64 support
+- MSBuild
+- Windows 10 SDK
 
 ## Building
 
@@ -24,26 +20,30 @@ To build the project:
 make
 ```
 
-### Building on macOS for Veracode Scanning
-
-On macOS, the native GCC 13 may not produce correct ARM64 Linux output for Veracode Static Analysis. Use Docker to build in a proper ARM64 Linux environment:
+### Building on macOS
 
 ```bash
 make docker-build
 ```
 
-This will:
-- Run the build inside an `arm64v8/gcc:13.2.0` Docker container
-- Generate correct ARM64 Linux preprocessed files (.ii)
-- Produce output suitable for Veracode Static Scan
+### Building on Windows
 
-### Build Output
+On Windows, open the solution file in Visual Studio:
 
-The build process will:
-- Compile all C++ source files using `gcc-13`
-- Generate preprocessed files (.ii) in the build directory
-- Generate assembly files (.s)
-- Create the executable `arm64_sample`
+```powershell
+# Open solution in Visual Studio
+start arm64_sample.sln
+```
+
+Or build from command line using MSBuild:
+
+```powershell
+# Build Debug configuration
+msbuild arm64_sample.sln /p:Configuration=Debug /p:Platform=ARM64
+
+# Build Release configuration
+msbuild arm64_sample.sln /p:Configuration=Release /p:Platform=ARM64
+```
 
 ## Running
 
@@ -60,23 +60,3 @@ To clean all build artifacts:
 ```bash
 make clean
 ```
-
-## Project Structure
-
-- `main.cpp` - Main program with various computational demonstrations
-- `utils.cpp/utils.h` - Utility functions for common operations
-- `Makefile` - Build configuration
-
-## Build Details
-
-The project uses the following compiler flags:
-- `-march=armv8-a` - Target ARM64 architecture
-- `-save-temps=obj` - Generate preprocessed (.ii) and assembly (.s) files
-- `-std=c++17` - Use C++17 standard
-- `-O2` - Optimization level 2
-
-## Libraries Used
-
-- Standard C++ Library (iostream, vector, cmath, numeric)
-- ARM NEON intrinsics (arm_neon.h)
-- Math library (libm)
