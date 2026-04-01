@@ -20,8 +20,8 @@ endif
 
 
 # Compiler flags
-CFLAGS = -Wall -Wextra -O2 -march=armv8-a -save-temps=obj
-CXXFLAGS = -Wall -Wextra -O2 -march=armv8-a -std=c++17 -save-temps=obj
+CFLAGS = -Wall -Wextra -march=armv8-a -save-temps=obj
+CXXFLAGS = -Wall -Wextra -march=armv8-a -std=c++17 -save-temps=obj
 LDFLAGS = -lm -lstdc++
 
 # Directories
