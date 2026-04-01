@@ -1,59 +1,75 @@
-# Simple Makefile for macOS/Linux builds
-# For cross-platform builds, use CMake (see BUILD.md)
-
-CXX = arch -arm64 clang++
-CXXFLAGS = -std=c++17 -Wall -Wextra -O2 -target arm64-apple-darwin
-SRCDIR = ARM64Sample
-BUILDDIR = $(SRCDIR)/build
-TARGET = $(BUILDDIR)/ARM64Sample.out
-SOURCES = $(SRCDIR)/main.cpp $(SRCDIR)/math_operations.cpp
-HEADERS = $(SRCDIR)/math_operations.h
-OBJECTS = $(patsubst $(SRCDIR)/%.cpp,$(BUILDDIR)/%.o,$(SOURCES))
-
-# Platform detection
+# Detect platform and set appropriate compiler
 UNAME_S := $(shell uname -s)
 UNAME_M := $(shell uname -m)
 
-ifeq ($(UNAME_S),Darwin)
-    $(info Building for macOS ARM64 (forced))
-endif
-
 ifeq ($(UNAME_S),Linux)
-    ifeq ($(UNAME_M),aarch64)
-        $(info Building for Linux ARM64)
+    ifeq ($(UNAME_M),x86_64)
+        # Linux amd64 - use cross-compiler
+        CC = aarch64-linux-gnu-gcc
+        CXX = aarch64-linux-gnu-gcc
+    else
+        # Native ARM64 Linux
+        CC = gcc
+        CXX = gcc
     endif
+else
+    # macOS or other platforms
+    CC = gcc-13
+    CXX = gcc-13
 endif
 
-.PHONY: all clean run
 
-all: $(TARGET)
+# Compiler flags
+CFLAGS = -Wall -Wextra -O2 -march=armv8-a -save-temps=obj
+CXXFLAGS = -Wall -Wextra -O2 -march=armv8-a -std=c++17 -save-temps=obj
+LDFLAGS = -lm -lstdc++
 
-$(BUILDDIR):
-	@mkdir -p $(BUILDDIR)
+# Directories
+BUILD_DIR = build
+VERAOUT_DIR = veraout
+PROJECT_DIR = .
 
-$(TARGET): $(BUILDDIR) $(OBJECTS)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJECTS)
-	@echo "Build complete: $(TARGET)"
-	@echo "Run with: ./$(TARGET)"
+# Target executable
+TARGET = $(BUILD_DIR)/arm64_sample
 
-$(BUILDDIR)/%.o: $(SRCDIR)/%.cpp $(HEADERS) | $(BUILDDIR)
+# Source files
+SOURCES = main.cpp utils.cpp
+OBJECTS = $(addprefix $(BUILD_DIR)/,$(SOURCES:.cpp=.o))
+
+# Preprocessed files that will be generated
+PREPROCESSED = $(addprefix $(BUILD_DIR)/,$(SOURCES:.cpp=.ii))
+
+# Default target
+all: $(BUILD_DIR) $(TARGET)
+
+# Create build directory
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
+
+# Link object files to create executable
+$(TARGET): $(OBJECTS)
+	$(CXX) $(OBJECTS) -o $(TARGET) $(LDFLAGS)
+
+# Compile C++ source files to object files
+$(BUILD_DIR)/%.o: %.cpp | $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+# Clean build artifacts
 clean:
-	rm -rf $(BUILDDIR)
-	@echo "Clean complete"
+	rm -rf $(BUILD_DIR) arm64_sample.zip ${VERAOUT_DIR}
 
-run: $(TARGET)
-	./$(TARGET)
+# Display preprocessed files
+show-preprocessed:
+	@echo "Preprocessed files (.ii):"
+	@ls -lh $(BUILD_DIR)/*.ii 2>/dev/null || echo "No preprocessed files found. Run 'make' first."
 
-# Debug build
-debug: CXXFLAGS += -g -D_DEBUG
-debug: clean $(TARGET)
+# Build in Docker container (useful for macOS to generate correct ARM64 output)
+docker-build:
+	docker run --rm -v $(PWD):/app --workdir /app --user root arm64v8/gcc:13.2.0 make
 
-# Show build info
-info:
-	@echo "System: $(UNAME_S)"
-	@echo "Architecture: $(UNAME_M)"
-	@echo "Compiler: $(CXX)"
-	@echo "Flags: $(CXXFLAGS)"
-	@echo "Sources: $(SOURCES)"
+# Veracode package
+veracode-package:
+	veracode package -s $(PROJECT_DIR) -a -t directory -o veraout
+
+# Phony targets
+.PHONY: all clean show-preprocessed docker-build veracode-package

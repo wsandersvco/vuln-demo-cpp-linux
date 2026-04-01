@@ -1,121 +1,82 @@
-# ARM64 Sample C++ Project
+# ARM64 C++ Sample Project
 
-A cross-platform C++ project configured for ARM64 architecture, supporting macOS (Apple Silicon), Windows ARM64, and Linux ARM64.
-
-## Project Structure
-
-```
-c-cpp-arm-project/
-├── CMakeLists.txt           # CMake build configuration (cross-platform)
-├── Makefile                 # Simple Makefile for Unix systems
-├── ARM64Sample.sln          # Visual Studio solution file (Windows)
-├── ARM64Sample/
-│   ├── ARM64Sample.vcxproj  # Visual Studio project file
-│   ├── main.cpp              # Main application entry point
-│   ├── math_operations.h     # Header file for math functions
-│   └── math_operations.cpp   # Implementation of math functions
-├── README.md
-└── BUILD.md                 # Detailed build instructions
-```
+A simple Linux ARM64 sample project demonstrating various computations and ARM NEON intrinsics, built with GCC 13.
 
 ## Features
 
-- **Cross-Platform ARM64**: Builds on macOS (Apple Silicon), Windows ARM64, and Linux ARM64
-- **Multiple Build Systems**: CMake, Visual Studio, Make
-- **C++17 Standard**: Uses modern C++ features
-- **Sample Code**: Demonstrates integer/floating-point arithmetic and architecture detection
-
-## Quick Start
-
-### macOS (Apple Silicon)
-
-```bash
-# Using CMake
-mkdir build && cd build
-cmake ..
-cmake --build .
-./bin/ARM64Sample
-
-# Or using Make
-make
-./ARM64Sample.out
-```
-
-### Windows ARM64
-
-```cmd
-# Using Visual Studio
-Open ARM64Sample.sln in Visual Studio 2022+
-
-# Or using CMake
-mkdir build && cd build
-cmake -G "Visual Studio 17 2022" -A ARM64 ..
-cmake --build . --config Release
-.\bin\Release\ARM64Sample.exe
-```
-
-### Linux ARM64
-
-```bash
-mkdir build && cd build
-cmake -DCMAKE_BUILD_TYPE=Release ..
-cmake --build .
-./bin/ARM64Sample
-```
+- Factorial computation
+- ARM NEON SIMD dot product operations
+- Matrix multiplication
+- Mathematical functions (sin, cos, sqrt, log)
+- Utility functions (distance, average, Fibonacci, prime checking)
 
 ## Requirements
 
-### macOS
-- Xcode Command Line Tools: `xcode-select --install`
-- CMake (optional): `brew install cmake`
-- Apple Silicon Mac (M1/M2/M3)
+- GCC 13 (gcc-13)
+- Linux ARM64 target architecture
+- Make build system
 
-### Windows
-- Visual Studio 2022+ with C++ development tools
-- ARM64 build tools and libraries
-- Windows 11 ARM64 or Windows 10 ARM64
+## Building
 
-### Linux
-- GCC or Clang with C++17 support
-- CMake: `sudo apt install cmake build-essential`
-- ARM64/AArch64 system
-
-## Build Systems
-
-This project supports three build approaches:
-
-1. **CMake** (Recommended) - Cross-platform, generates project files for any IDE
-2. **Visual Studio** - Native Windows ARM64 development
-3. **Make** - Simple Unix builds for macOS/Linux
-
-See **[BUILD.md](BUILD.md)** for detailed instructions.
-
-## Application Output
-
-The program demonstrates:
-
-1. Architecture detection and build configuration
-2. Basic integer arithmetic operations (add, subtract, multiply, divide)
-3. Floating-point arithmetic operations
-4. Power function calculations
-
-## Platform Verification
-
-Confirm ARM64 build:
+To build the project:
 
 ```bash
-# macOS
-file ./bin/ARM64Sample
-
-# Linux
-readelf -h ./bin/ARM64Sample | grep Machine
-
-# Windows
-dumpbin /HEADERS .\bin\Release\ARM64Sample.exe | findstr "machine"
+make
 ```
 
-## Notes
+### Building on macOS for Veracode Scanning
 
-- Modern Macs (M1/M2/M3) are native ARM64 and will build automatically
-- Windows requires explicit ARM64 platform selection
-- Linux ARM64 builds on AArch64 systems (e.g., Raspberry Pi 4, AWS Graviton)
+On macOS, the native GCC 13 may not produce correct ARM64 Linux output for Veracode Static Analysis. Use Docker to build in a proper ARM64 Linux environment:
+
+```bash
+make docker-build
+```
+
+This will:
+- Run the build inside an `arm64v8/gcc:13.2.0` Docker container
+- Generate correct ARM64 Linux preprocessed files (.ii)
+- Produce output suitable for Veracode Static Scan
+
+### Build Output
+
+The build process will:
+- Compile all C++ source files using `gcc-13`
+- Generate preprocessed files (.ii) in the build directory
+- Generate assembly files (.s)
+- Create the executable `arm64_sample`
+
+## Running
+
+After building, run the executable:
+
+```bash
+./build/arm64_sample
+```
+
+## Cleaning
+
+To clean all build artifacts:
+
+```bash
+make clean
+```
+
+## Project Structure
+
+- `main.cpp` - Main program with various computational demonstrations
+- `utils.cpp/utils.h` - Utility functions for common operations
+- `Makefile` - Build configuration
+
+## Build Details
+
+The project uses the following compiler flags:
+- `-march=armv8-a` - Target ARM64 architecture
+- `-save-temps=obj` - Generate preprocessed (.ii) and assembly (.s) files
+- `-std=c++17` - Use C++17 standard
+- `-O2` - Optimization level 2
+
+## Libraries Used
+
+- Standard C++ Library (iostream, vector, cmath, numeric)
+- ARM NEON intrinsics (arm_neon.h)
+- Math library (libm)
