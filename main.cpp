@@ -1,3 +1,9 @@
+// Windows compatibility
+#ifdef _WIN32
+#define _USE_MATH_DEFINES  // Enable M_PI, M_E constants
+#define _CRT_SECURE_NO_WARNINGS  // Allow ctime usage
+#endif
+
 #include <iostream>
 #include <cmath>
 #include <vector>
